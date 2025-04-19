@@ -1,26 +1,60 @@
 {
-  "name": "signet",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "react": "^18",
-    "react-dom": "^18",
-    "next": "14.2.24"
-  },
-  "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.24"
-  }
+    "name": "signet",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "format": "biome format --write",
+        "start": "next start",
+        "lint": "biome lint --write"
+    },
+    "dependencies": {
+        "@atlaskit/pragmatic-drag-and-drop": "^1.6.0",
+        "@atlaskit/pragmatic-drag-and-drop-flourish": "^2.0.2",
+        "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.0.3",
+        "@auth/core": "^0.37.0",
+        "@convex-dev/auth": "^0.0.81",
+        "@radix-ui/react-dialog": "^1.1.7",
+        "@radix-ui/react-dropdown-menu": "^2.1.6",
+        "@radix-ui/react-label": "^2.1.2",
+        "@radix-ui/react-menubar": "^1.1.6",
+        "@radix-ui/react-popover": "^1.1.6",
+        "@radix-ui/react-slot": "^1.1.2",
+        "axios": "^1.9.0",
+        "cheerio": "^1.0.0",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "cmdk": "^1.1.1",
+        "convex": "^1.23.0",
+        "convex-helpers": "^0.1.79",
+        "date-fns": "^4.1.0",
+        "fuse.js": "^7.1.0",
+        "lodash": "^4.17.21",
+        "lucide-react": "^0.482.0",
+        "moment": "^2.30.1",
+        "next": "^14.2.28",
+        "next-themes": "^0.4.6",
+        "react": "^18",
+        "react-day-picker": "^8.10.1",
+        "react-dom": "^18",
+        "sonner": "^2.0.1",
+        "tailwind-merge": "^3.0.2",
+        "tailwindcss-animate": "^1.0.7",
+        "uuid": "^11.1.0",
+        "zustand": "^5.0.3"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.9.4",
+        "@tailwindcss/forms": "^0.5.10",
+        "@types/lodash": "^4.17.16",
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "eslint": "^8",
+        "eslint-config-next": "14.2.24",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.1",
+        "typescript": "^5"
+    }
 }
