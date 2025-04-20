@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import CreateFolder from '../create-folder/create-folder'
 import ThemeToggle from '../theme-toggle/theme-toggle'
-import { usePaginatedQuery } from 'convex/react'
+import { usePaginatedQuery, useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id, Doc } from '../../../../convex/_generated/dataModel'
 import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
@@ -10,6 +10,7 @@ import { reorderWithEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/r
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { flushSync } from 'react-dom'
 import { Folder } from './folder'
+import UserProfile from '../user-profile/user-profile'
 
 const Folders = () => {
     const [folders, setFolders] = useState<
@@ -71,7 +72,8 @@ const Folders = () => {
                 ))}
             </div>
 
-            <div className="absolute bottom-0 h-[40px] w-full flex justify-end px-2 border-t-[1px] border-[#dddddd] dark:border-dark-border">
+            <div className="absolute bottom-0 h-[40px] w-full flex items-center justify-between px-2 border-t-[1px] border-[#dddddd] dark:border-dark-border">
+                <UserProfile />
                 <ThemeToggle />
             </div>
         </div>

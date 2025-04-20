@@ -26,6 +26,7 @@ import {
 import { Trash2 } from 'lucide-react'
 
 import type { Id, Doc } from '../../../../convex/_generated/dataModel'
+import { DropIndicator } from './drop-indicator'
 
 type FolderState =
     | {
@@ -206,7 +207,7 @@ export const Folder = ({ folder }: FolderProps) => {
                     </div>
 
                     {isShow ? (
-                        <div onClick={() => console.log('asdfasd')}>
+                        <div onClick={handleDeleteFolder}>
                             <Trash2 className="text-[#9c9c9c] hover:text-[#ff6f6f]" size={12} />
                         </div>
                     ) : null}
@@ -223,9 +224,11 @@ export const Folder = ({ folder }: FolderProps) => {
                         ))}
                     </div>
                 ) : null}
-                {/* {folderState.type === 'is-dragging-over' && folderState.closestEdge ? (
-        <DropIndicator edge={folderState.closestEdge} gap={'8px'} />
-      ) : null} */}
+                {folderState.type === 'is-dragging-over' && folderState.closestEdge ? (
+                    <div
+                        className={`absolute z-10 bg-red-500 pointer-events-none before:content-[''] before:w-[100px] before:h-[2px] box-border before:absolute before:border-[2px] before:border-solid before:border-orange-700 `}
+                    />
+                ) : null}
             </div>
             <div className="w-full">
                 {folderState.type === 'preview'
