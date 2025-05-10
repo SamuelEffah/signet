@@ -1,22 +1,33 @@
 'use client'
 import _ from 'lodash'
-import { useState, useCallback, useEffect, type ChangeEvent } from 'react'
+import {
+    useState,
+    useCallback,
+    useRef,
+    type KeyboardEvent,
+    useEffect,
+    type ChangeEvent,
+} from 'react'
 import { Input } from '@/components/ui/input'
-import { Search, SquareCheckBig, Trash2 } from 'lucide-react'
+import { Search, SquareCheckBig, Trash2, Upload } from 'lucide-react'
 import AddBookmarkDialog from '../add-bookmark-dialog/add-bookmark-dialog'
 import BookmarkItem from './bookmark-item'
 import MoveBookmark from '../move-bookmark/move-bookmark'
 import TagBookmark from '../tag-bookmark/tag-bookmark'
-
 import { usePaginatedQuery, useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id, Doc } from '../../../../convex/_generated/dataModel'
-
+import { useToast } from '@/hooks/use-toast'
+import { ScrollArea } from '@/components/ui/scroll-area'
 interface ParsedBookmark {
     url: string
     title: string
     hostname: string
     favicon?: string
+}
+
+enum FilterMode {
+    TAGS = 'tags',
 }
 
 const parseBookmarks = (content: unknown) => {
@@ -49,10 +60,17 @@ const BookmarkList = () => {
     const [IsShowSelection, setIsShowSelection] = useState(true)
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<undefined | string>(undefined)
     const [selection, setSelection] = useState<Record<Id<'bookmarks'>, boolean>>({})
+    const [filterMode, setFilterMode] = useState<FilterMode | undefined>(undefined)
+    const inputRef = useRef<HTMLInputElement | null>(null)
+    const { toast } = useToast()
 
     const debouncedSearch = useCallback(
-        _.debounce((term) => {
-            setDebouncedSearchTerm(term)
+        _.debounce((term, filterMode) => {
+            let filterTerm = term
+            if (filterMode === FilterMode.TAGS) {
+                filterTerm = `tags:${term}`
+            }
+            setDebouncedSearchTerm(filterTerm)
         }, 150),
         [],
     )
@@ -60,7 +78,7 @@ const BookmarkList = () => {
     const { results: bookmarks } = usePaginatedQuery(
         api.bookmarks.getBookmarks,
         { searchTerm: debouncedSearchTerm ?? '' },
-        { initialNumItems: 100 },
+        { initialNumItems: 20 },
     )
 
     const deleteBookmarks = useMutation(api.bookmarks.bulkDelete)
@@ -78,6 +96,9 @@ const BookmarkList = () => {
                 reader.onload = async (e) => {
                     const content = e.target?.result
                     const res = parseBookmarks(content)
+                    toast({
+                        description: 'Uploading bookmark...',
+                    })
                     await Promise.all(
                         res.map((b) =>
                             createBookmark({
@@ -87,17 +108,20 @@ const BookmarkList = () => {
                             }),
                         ),
                     )
+                    toast({
+                        description: 'Successfully uploaded bookmarks.',
+                    })
                 }
                 reader.readAsText(file)
             }
             return
         },
-        [createBookmark],
+        [createBookmark, toast],
     )
 
     useEffect(() => {
-        debouncedSearch(searchTerm)
-    }, [searchTerm, debouncedSearch])
+        debouncedSearch(searchTerm, filterMode)
+    }, [searchTerm, filterMode, debouncedSearch])
 
     const handleSelect = useCallback((bookmarkId: Id<'bookmarks'>, value: boolean) => {
         setSelection((prevState) => {
@@ -121,59 +145,87 @@ const BookmarkList = () => {
         setSelection({})
     }, [selection, deleteBookmarks])
 
+    const handleOnKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.code === 'Backspace' && (inputRef.current?.value.length ?? 0) === 0) {
+            setFilterMode(undefined)
+        }
+        if (event.code === 'Semicolon' && inputRef.current?.value === 'tags') {
+            event.preventDefault()
+            inputRef.current.value = ''
+            setSearchTerm('')
+            setFilterMode(FilterMode.TAGS)
+        }
+    }, [])
+
     return (
-        <div className="w-3/6 p-2">
-            <div className="flex items-center">
-                <div className="flex items-center border border-[#d2d1d1] bg-[#e0e0e0] dark:bg-dark-input dark:border-dark-input-border rounded-sm">
-                    <Search color="#909090" className="mx-1" size={13} />
-                    <Input
-                        className="!text-[12px] h-7 w-full  focus-visible:ring-0 p-0 m-0 px-1 outline-none rounded-none rounded-r-sm !border-none bg-[#e0e0e0] dark:bg-dark-input"
-                        placeholder="search..."
-                        onChange={(evt) => setSearchTerm(evt.target.value)}
-                        value={searchTerm ?? ''}
-                    />
+        <div className="w-full md:w-2/3  p-2 h-full  relative">
+            <div className="absolute left-0 top-0 bg-white dark:bg-dark-primary z-30 h-[100px] p-2 w-full">
+                <div className="flex  items-center">
+                    <div className="flex flex-grow items-center border border-[#d2d1d1] bg-[#e0e0e0] dark:bg-dark-input dark:border-dark-input-border rounded-sm">
+                        <Search color="#909090" className="mx-1" size={13} />
+                        {filterMode === FilterMode.TAGS ? (
+                            <span className="text-[10px] p-[2px] rounded-[2px] bg-[#2e5331]">
+                                tags
+                            </span>
+                        ) : null}
+                        <Input
+                            ref={inputRef}
+                            onKeyDown={handleOnKeyDown}
+                            className="!text-[12px] h-7 w-full  focus-visible:ring-0 p-0 m-0 px-1 outline-none rounded-none rounded-r-sm !border-none bg-[#e0e0e0] dark:bg-dark-input"
+                            placeholder="search..."
+                            onChange={(evt) => setSearchTerm(evt.target.value)}
+                            value={searchTerm ?? ''}
+                        />
+                    </div>
+
+                    <div className="ml-2">
+                        <input
+                            type="file"
+                            id="file-upload"
+                            style={{ display: 'none' }}
+                            onChange={handleFileChange}
+                        />
+                        <label
+                            htmlFor="file-upload"
+                            className="text-[10px] cursor-pointer p-[5px] px-[8px] rounded-sm flex items-center text-white  bg-dark-secondary">
+                            <Upload className="mr-1" size={10} />
+                            Import
+                        </label>
+                    </div>
                 </div>
 
-                <div>
-                    <input
-                        type="file"
-                        id="file-upload"
-                        style={{ display: 'none' }}
-                        onChange={handleFileChange}
-                    />
-                    <label
-                        htmlFor="file-upload"
-                        className="text-[10px] p-[2px] rounded-sm  bg-dark-secondary">
-                        Import
-                    </label>
+                <div className="my-4 flex items-center justify-between">
+                    <AddBookmarkDialog />
+                    <div
+                        onClick={handleSelectMultiple}
+                        className="flex cursor-pointer items-center">
+                        <SquareCheckBig size={12} />
+                        <span className="text-[10px] pl-[2px]">
+                            {IsShowSelection ? '  Hide Selection' : 'Select Multiple'}
+                        </span>
+                    </div>
                 </div>
+                {IsShowSelection ? (
+                    <div className="flex items-center">
+                        <span className="text-[9px]">
+                            {Object.keys(selection).length} bookmarks selected
+                        </span>
+                        <MoveBookmark
+                            selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
+                        />
+                        <TagBookmark
+                            selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
+                        />
+                        <button
+                            onClick={handleDeleteBookmarks}
+                            className={`flex items-center  ml-2 rounded-sm  ${Object.keys(selection).length === 0 ? 'opacity-50' : 'hover:opacity-70'} `}>
+                            <Trash2 size={12} />
+                            <span className="text-[10px] px-[2px]">Delete</span>
+                        </button>
+                    </div>
+                ) : null}
             </div>
-
-            <div className="my-4 flex items-center justify-between">
-                <AddBookmarkDialog />
-                <div onClick={handleSelectMultiple} className="flex cursor-pointer items-center">
-                    <SquareCheckBig size={12} />
-                    <span className="text-[10px] pl-[2px]">
-                        {IsShowSelection ? '  Hide Selection' : 'Select Multiple'}
-                    </span>
-                </div>
-            </div>
-            {IsShowSelection ? (
-                <div className="flex items-center">
-                    <span className="text-[9px]">
-                        {Object.keys(selection).length} bookmarks selected
-                    </span>
-                    <MoveBookmark selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>} />
-                    <TagBookmark selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>} />
-                    <button
-                        onClick={handleDeleteBookmarks}
-                        className={`flex items-center  ml-2 rounded-sm  ${Object.keys(selection).length === 0 ? 'opacity-50' : 'hover:opacity-70'} `}>
-                        <Trash2 size={12} />
-                        <span className="text-[10px] px-[2px]">Delete</span>
-                    </button>
-                </div>
-            ) : null}
-            <div className="mt-4 w-full">
+            <ScrollArea className="h-[calc(100%-140px)]  mt-[100px] py-4 w-full">
                 {bookmarks.length === 0 ? (
                     <div className="w-full flex items-center text-[#787878] justify-center mt-10">
                         <Search size={12} />
@@ -189,7 +241,8 @@ const BookmarkList = () => {
                         bookmark={bookmark}
                     />
                 ))}
-            </div>
+            </ScrollArea>
+            {/* <div className="h-[40px] dark:bg-dark-primary z-30 sticky bottom-0 "></div> */}
         </div>
     )
 }

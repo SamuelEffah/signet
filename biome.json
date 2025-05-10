@@ -4,7 +4,13 @@
         "useIgnoreFile": false
     },
     "files": {
-        "ignore": ["node_modules", ".next", "convex/_generated/*"]
+        "ignore": [
+            "node_modules",
+            ".next",
+            "src/components/*",
+            "src/hooks/*",
+            "convex/_generated/*"
+        ]
     },
     "formatter": {
         "enabled": true,

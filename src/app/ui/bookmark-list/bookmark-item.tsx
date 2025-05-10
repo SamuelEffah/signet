@@ -134,7 +134,7 @@ const BookmarkItem = ({ bookmark, isFolder, onSelect, isSelectable }: BookmarkIt
     const isDarkTheme = useMemo(() => themeContext?.theme === 'dark', [themeContext?.theme])
 
     return (
-        <div className="flex items-center w-full relative">
+        <div className="flex items-center w-full relative px-3 py-[2px]">
             {isSelectable ? (
                 <input
                     onChange={(evt) => onSelect?.(bookmark._id, evt.target.checked)}

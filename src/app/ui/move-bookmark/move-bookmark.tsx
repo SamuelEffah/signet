@@ -67,7 +67,10 @@ const MoveBookmark = (props: MoveBookmarkProps) => {
 
             <PopoverContent className="bg-[#f7f7f7] dark:bg-dark-modal mx-8 border w-[200px] border-[#cecece] dark:border-dark-border relative">
                 <Command className="dark:bg-dark-modal ">
-                    <CommandInput className="text-[12px]" placeholder="Search folder..." />
+                    <CommandInput
+                        className="text-[12px] h-8 dark:bg-dark-input dark:border-dark-input-border"
+                        placeholder="Search folder..."
+                    />
                     <CommandList>
                         <CommandEmpty className="text-[12px] text-center py-4">
                             No folder found.

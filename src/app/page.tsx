@@ -30,13 +30,18 @@ export default function Home() {
 
     return (
         <ThemeContext.Provider value={contextValue}>
-            <div className="dark:bg-dark-primary">
+            <div className="flex h-screen w-full overflow-hidden dark:bg-dark-primary">
                 <Authenticated>
-                    <div className="grid dark:bg-dark-primary grid-cols-[310px_minmax(800px,1fr)_300px] min-h-screen font-[family-name:var(--font-geist-sans)]">
+                    <div className="w-64 h-full flex-shrink-0  flex min-h-screen font-[family:var(--font-geist-sans)]">
                         <Folders />
-                        <BookmarkList />
                     </div>
-                    <BookmarkDetailsDialog />
+
+                    <div className="flex-1 overflow-y-auto flex min-h-screen relative font-[family:var(--font-geist-sans)]">
+                        <div className="w-full relative">
+                            <BookmarkList />
+                            <BookmarkDetailsDialog />
+                        </div>
+                    </div>
                 </Authenticated>
 
                 <Unauthenticated>

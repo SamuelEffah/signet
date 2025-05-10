@@ -72,7 +72,7 @@ const TagBookmark = (props: TagBookmarkProps) => {
             <PopoverContent className="bg-[#f7f7f7] dark:bg-dark-modal mx-8 border border-[#cecece] dark:border-dark-input-border relative">
                 <div>
                     <div>
-                        <div className="py-1 flex items-center">
+                        <div className="py-1 flex h-8 items-center">
                             {tags.map((tag) => (
                                 <div
                                     key={tag}
@@ -92,6 +92,11 @@ const TagBookmark = (props: TagBookmarkProps) => {
                                     />
                                 </div>
                             ))}
+                            {tags.length === 0 && (
+                                <span className="text-[8px] text-[#50535a]">
+                                    Added tags appear here
+                                </span>
+                            )}
                         </div>
                         <Input
                             value={value}

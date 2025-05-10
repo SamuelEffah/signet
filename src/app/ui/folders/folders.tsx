@@ -60,7 +60,7 @@ const Folders = () => {
     }, [folders])
 
     return (
-        <div className=" border-r-[1px] border-[#dddddd] dark:border-dark-border relative">
+        <div className=" w-full border-r-[1px] border-[#dddddd] dark:border-dark-border relative">
             <div className="flex items-center m-2">
                 <p className="text-xs mr-2 font-medium">Folders </p>
                 <CreateFolder />
