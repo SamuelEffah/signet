@@ -11,7 +11,7 @@ export const getBookmarks = query({
         if (!userId) throw new Error('Not signed in')
 
         const searchSplit = searchTerm.split(/tags:/i)
-        if (searchSplit === null && searchTerm.trim().length > 0) {
+        if (searchSplit.length === 1 && searchSplit[0].length > 0) {
             return await ctx.db
                 .query('bookmarks')
                 .withSearchIndex('search_title', (q) => q.search('title', searchTerm))
