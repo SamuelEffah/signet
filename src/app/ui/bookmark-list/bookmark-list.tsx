@@ -7,6 +7,8 @@ import {
     type KeyboardEvent,
     useEffect,
     type ChangeEvent,
+    useMemo,
+    ChangeEventHandler,
 } from 'react'
 import { Input } from '@/components/ui/input'
 import { Search, SquareCheckBig, Trash2, Upload } from 'lucide-react'
@@ -19,6 +21,8 @@ import { api } from '../../../../convex/_generated/api'
 import type { Id, Doc } from '../../../../convex/_generated/dataModel'
 import { useToast } from '@/hooks/use-toast'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
+
 interface ParsedBookmark {
     url: string
     title: string
@@ -61,7 +65,9 @@ const BookmarkList = () => {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<undefined | string>(undefined)
     const [selection, setSelection] = useState<Record<Id<'bookmarks'>, boolean>>({})
     const [filterMode, setFilterMode] = useState<FilterMode | undefined>(undefined)
+    const [isAllChecked, setIsAllChecked] = useState(false)
     const inputRef = useRef<HTMLInputElement | null>(null)
+
     const { toast } = useToast()
 
     const debouncedSearch = useCallback(
@@ -75,7 +81,11 @@ const BookmarkList = () => {
         [],
     )
 
-    const { results: bookmarks } = usePaginatedQuery(
+    const {
+        results: bookmarks,
+        status,
+        isLoading,
+    } = usePaginatedQuery(
         api.bookmarks.getBookmarks,
         { searchTerm: debouncedSearchTerm ?? '' },
         { initialNumItems: 20 },
@@ -119,6 +129,27 @@ const BookmarkList = () => {
         [createBookmark, toast],
     )
 
+    const handleSelectAllBookmarks = useCallback(
+        (evt: ChangeEvent<HTMLInputElement>) => {
+            const checked = evt.target.checked
+            setIsAllChecked(checked)
+            setSelection((prevSelection) => {
+                const newSelection = { ...prevSelection }
+                for (const bookmark of bookmarks) {
+                    newSelection[bookmark._id] = checked
+                }
+                return newSelection
+            })
+        },
+        [bookmarks],
+    )
+
+    useEffect(() => {
+        if (bookmarks.length === 0) {
+            setIsAllChecked(false)
+        }
+    }, [bookmarks])
+
     useEffect(() => {
         debouncedSearch(searchTerm, filterMode)
     }, [searchTerm, filterMode, debouncedSearch])
@@ -143,6 +174,7 @@ const BookmarkList = () => {
         const ids = Object.keys(selection) as Array<Id<'bookmarks'>>
         deleteBookmarks({ ids })
         setSelection({})
+        setIsAllChecked(false)
     }, [selection, deleteBookmarks])
 
     const handleOnKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
@@ -206,26 +238,40 @@ const BookmarkList = () => {
                     </div>
                 </div>
                 {IsShowSelection ? (
-                    <div className="flex items-center">
-                        <span className="text-[9px]">
-                            {Object.keys(selection).length} bookmarks selected
-                        </span>
-                        <MoveBookmark
-                            selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
-                        />
-                        <TagBookmark
-                            selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
-                        />
-                        <button
-                            onClick={handleDeleteBookmarks}
-                            className={`flex items-center  ml-2 rounded-sm  ${Object.keys(selection).length === 0 ? 'opacity-50' : 'hover:opacity-70'} `}>
-                            <Trash2 size={12} />
-                            <span className="text-[10px] px-[2px]">Delete</span>
-                        </button>
-                    </div>
+                    <>
+                        <div className="flex items-center">
+                            <span className="text-[9px]">
+                                {Object.keys(selection).length} bookmarks selected
+                            </span>
+                            <MoveBookmark
+                                selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
+                            />
+                            <TagBookmark
+                                selectionIds={Object.keys(selection) as Array<Id<'bookmarks'>>}
+                            />
+                            <button
+                                onClick={handleDeleteBookmarks}
+                                className={`flex items-center  ml-2 rounded-sm  ${Object.keys(selection).length === 0 ? 'opacity-50' : 'hover:opacity-70'} `}>
+                                <Trash2 size={12} />
+                                <span className="text-[10px] px-[2px]">Delete</span>
+                            </button>
+                        </div>
+                        {bookmarks.length > 0 ? (
+                            <div className="w-full pt-3 flex items-center  px-3">
+                                <input
+                                    disabled={bookmarks.length === 0}
+                                    checked={isAllChecked}
+                                    onChange={handleSelectAllBookmarks}
+                                    type="checkbox"
+                                    className="mr-2  outline-none dark:checked:bg-[#3152d8] dark:bg-dark-input w-[12px] h-[12px] "
+                                />
+                                <span className="text-[10px] opacity-85">Select All</span>
+                            </div>
+                        ) : null}
+                    </>
                 ) : null}
             </div>
-            <ScrollArea className="h-[calc(100%-140px)]  mt-[100px] py-4 w-full">
+            <ScrollArea className="h-[calc(100%-140px)]  mt-[100px] py-6 w-full">
                 {bookmarks.length === 0 ? (
                     <div className="w-full flex items-center text-[#787878] justify-center mt-10">
                         <Search size={12} />
@@ -235,6 +281,7 @@ const BookmarkList = () => {
 
                 {bookmarks.map((bookmark) => (
                     <BookmarkItem
+                        isChecked={selection[bookmark._id]}
                         isSelectable={IsShowSelection}
                         onSelect={handleSelect}
                         key={bookmark._id}
@@ -242,7 +289,6 @@ const BookmarkList = () => {
                     />
                 ))}
             </ScrollArea>
-            {/* <div className="h-[40px] dark:bg-dark-primary z-30 sticky bottom-0 "></div> */}
         </div>
     )
 }

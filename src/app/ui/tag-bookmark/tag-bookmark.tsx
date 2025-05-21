@@ -44,18 +44,18 @@ const TagBookmark = (props: TagBookmarkProps) => {
             if (evt.key === 'Enter') {
                 setTags((prevTags) => {
                     const isTagExist = prevTags.includes(value)
-                    if (!isTagExist) {
+                    if (!isTagExist && value.trim().length > 0) {
                         return [...prevTags, value]
                     }
                     return prevTags
                 })
                 setValue('')
             }
-            if (evt.ctrlKey && evt.code === 'KeyS') {
+            if (evt.ctrlKey && evt.code === 'KeyS' && tags.length > 0) {
                 handleBulkTags()
             }
         },
-        [handleBulkTags, value],
+        [handleBulkTags, tags, value],
     )
 
     const isDarkTheme = useMemo(() => themeContext?.theme === 'dark', [themeContext?.theme])
@@ -119,7 +119,10 @@ const TagBookmark = (props: TagBookmarkProps) => {
                             +S: Save Tag(s)
                         </span>
                     </div>
-                    <button onClick={handleBulkTags} className="text-[10px] hover:text-[#384eda]">
+                    <button
+                        disabled={tags.length === 0}
+                        onClick={handleBulkTags}
+                        className="text-[10px] hover:text-[#384eda]">
                         Save
                     </button>
                 </div>

@@ -24,6 +24,7 @@ import Image from 'next/image'
 interface BookmarkItemProps {
     bookmark: Doc<'bookmarks'>
     isSelectable?: boolean
+    isChecked: boolean
     onSelect?: (bookmarkId: Id<'bookmarks'>, value: boolean) => void
     isFolder?: boolean
 }
@@ -111,7 +112,13 @@ export function BookmarkDropdownMenu({
     )
 }
 
-const BookmarkItem = ({ bookmark, isFolder, onSelect, isSelectable }: BookmarkItemProps) => {
+const BookmarkItem = ({
+    bookmark,
+    isFolder,
+    isChecked,
+    onSelect,
+    isSelectable,
+}: BookmarkItemProps) => {
     const themeContext = useContext(ThemeContext)
 
     const { openDialog } = useBookmarkDetailDialogStore()
@@ -137,6 +144,7 @@ const BookmarkItem = ({ bookmark, isFolder, onSelect, isSelectable }: BookmarkIt
         <div className="flex items-center w-full relative px-3 py-[2px]">
             {isSelectable ? (
                 <input
+                    checked={isChecked}
                     onChange={(evt) => onSelect?.(bookmark._id, evt.target.checked)}
                     type="checkbox"
                     className="mr-2  outline-none dark:checked:bg-[#3152d8] dark:bg-dark-input w-[12px] h-[12px] "

@@ -94,7 +94,7 @@ const BookmarkDetailsDialog = () => {
     }, [bookmarkNote, bookmark, addBookmarkNote])
 
     const handleNewTag = useCallback(() => {
-        const prevTags = tags
+        if (newTag.trim().length === 0) return
         if (bookmark) {
             const addNewTag = async () => {
                 try {
@@ -108,7 +108,7 @@ const BookmarkDetailsDialog = () => {
         }
 
         setNewTag('')
-    }, [newTag, tags, bookmark, addBookmarkTag])
+    }, [newTag, bookmark, addBookmarkTag])
 
     const handleReminderDate = useCallback(
         (day: Date) => {

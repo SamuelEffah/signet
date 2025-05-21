@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -13,17 +13,21 @@ import { Input } from '@/components/ui/input'
 import { useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import { Plus } from 'lucide-react'
+import { strToColor } from '@/app/utils/conv'
+import { X } from 'lucide-react'
 
 const AddBookmarkDialog = () => {
     const [title, setTitle] = useState('')
     const [url, setUrl] = useState('')
     const [open, setOpen] = useState(false)
-
+    const [newTag, setNewTag] = useState('')
+    const [tags, setTags] = useState<string[]>([])
     const createBookmark = useMutation(api.bookmarks.createBookmark)
 
     const clearInputs = useCallback(() => {
         setTitle('')
         setUrl('')
+        setTags([])
     }, [])
 
     const handleDialogOnClose = useCallback(() => {
@@ -37,11 +41,24 @@ const AddBookmarkDialog = () => {
                 title,
                 url,
                 hostname,
+                tags,
             })
         }
         clearInputs()
         handleDialogOnClose()
-    }, [title, url, createBookmark, handleDialogOnClose, clearInputs])
+    }, [title, url, tags, createBookmark, handleDialogOnClose, clearInputs])
+
+    const handleNewTag = useCallback(() => {
+        if (newTag.trim().length === 0) return
+        setTags((prevTags) => [...prevTags, newTag])
+        setNewTag('')
+    }, [newTag])
+
+    useEffect(() => {
+        if (!open) {
+            clearInputs()
+        }
+    }, [open, clearInputs])
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -54,9 +71,6 @@ const AddBookmarkDialog = () => {
             <DialogContent className="sm:max-w-[425px] dark:bg-dark-modal">
                 <DialogHeader>
                     <DialogTitle className="text-sm">Add a new bookmark</DialogTitle>
-                    <DialogDescription className="text-xs">
-                        Make changes to your profile here. Click save when you are done.
-                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -76,6 +90,43 @@ const AddBookmarkDialog = () => {
                             value={title}
                             className="col-span-full !text-[12px] dark:bg-dark-input dark:border-dark-input-border   border border-[#cecece] focus-visible:ring-0"
                         />
+                    </div>
+
+                    <div className="mb-2 flex items-center w-max p-[3px] rounded-sm border-[1px] border-[#d4d3d3] dark:border-[#363b48]">
+                        {tags.map((tag) => (
+                            <div
+                                key={tag}
+                                style={{ backgroundColor: strToColor(tag) }}
+                                className="flex w-max items-center text-[9px] text-[#000] p-1 mx-[2px] rounded-sm">
+                                <span>{tag}</span>
+                                <X
+                                    onClick={() =>
+                                        setTags((prevTags) => prevTags.filter((t) => t !== tag))
+                                    }
+                                    className="ml-1 cursor-pointer hover:opacity-45"
+                                    size={9}
+                                />
+                            </div>
+                        ))}
+                        {tags.length < 2 ? (
+                            <div
+                                className={`flex ${tags.length > 0 ? 'ml-2' : ''} rounded-sm items-center bg-[#dedede] dark:bg-[#2b2c3b]`}>
+                                <input
+                                    value={newTag}
+                                    onChange={(evt) => setNewTag(evt.target.value)}
+                                    placeholder="add a tag"
+                                    className="h-[20px] rounded-l-sm ml-1 border-none bg-[#dedede] text-[10px] dark:bg-[#2b2c3b] w-[100px]"
+                                />
+
+                                <span>
+                                    <Plus
+                                        onClick={handleNewTag}
+                                        className="ml-2 mr-1 cursor-pointer"
+                                        size={12}
+                                    />
+                                </span>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
                 <DialogFooter>
