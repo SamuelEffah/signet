@@ -49,8 +49,13 @@ export const getBookmark = query({
 })
 
 export const createBookmark = mutation({
-    args: { title: v.string(), hostname: v.string(), url: v.string() },
-    handler: async (ctx, { title, hostname, url }) => {
+    args: {
+        title: v.string(),
+        hostname: v.string(),
+        tags: v.optional(v.array(v.string())),
+        url: v.string(),
+    },
+    handler: async (ctx, { title, hostname, url, tags }) => {
         const userId = await getAuthUserId(ctx)
         if (!userId) throw new Error('Not signed in')
 
@@ -59,6 +64,7 @@ export const createBookmark = mutation({
             url: url,
             userId: userId,
             hostname: hostname,
+            tags: tags?.join(' ').trim(),
         })
 
         await ctx.scheduler.runAfter(0, internal.helpers.scrapeMetatData, {
